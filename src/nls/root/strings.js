@@ -178,6 +178,7 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
+    "CMD_FILE_REFRESH"                    : "Refresh",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
