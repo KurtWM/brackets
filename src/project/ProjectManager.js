@@ -136,11 +136,7 @@ define(function (require, exports, module) {
      * @private
      * Used to initialize jstree state
      */
-    var _projectInitialLoad = {
-        previous        : [],   /* array of arrays containing full paths to open at each depth of the tree */
-        id              : 0,    /* incrementing id */
-        fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
-    };
+    var _projectInitialLoad = null;
     
     var suppressToggleOpen = false;
     
@@ -345,7 +341,9 @@ define(function (require, exports, module) {
         
         // suppress selectionChanged event from firing by jstree select_node
         _suppressSelectionChange = true;
-        _projectTree.jstree("deselect_node", current);
+        if (current) {
+            _projectTree.jstree("deselect_node", current);
+        }
         _projectTree.jstree("select_node", target, false);
         _suppressSelectionChange = false;
         
@@ -749,10 +747,15 @@ define(function (require, exports, module) {
 
             // close all the old files
             DocumentManager.closeAll();
-
-            // reset tree node id's
-            _projectInitialLoad.id = 0;
         }
+        
+        // Clear project path map
+        _projectInitialLoad = {
+            previous        : [],   /* array of arrays containing full paths to open at each depth of the tree */
+            id              : 0,    /* incrementing id */
+            fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
+        };
+        
         var result = new $.Deferred(),
             resultRenderTree;
 
@@ -839,16 +842,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Reloads the project's file tree
-     * @return {$.Promise} A promise object that will be resolved when the
-     *  project tree is reloaded, or rejected if the project path
-     *  fails to reload.
-     */
-    function refreshFileTree() {
-        return _loadProject(getProjectRoot().fullPath, true);
-    }
-    
-    /**
      * Finds the tree node corresponding to the given file/folder (rejected if the path lies
      * outside the project, or if it doesn't exist).
      * 
@@ -908,6 +901,37 @@ define(function (require, exports, module) {
         findInSubtree(topLevelNodes, 0);
         
         return result.promise();
+    }
+    
+    /**
+     * Reloads the project's file tree
+     * @return {$.Promise} A promise object that will be resolved when the
+     *  project tree is reloaded, or rejected if the project path
+     *  fails to reload.
+     */
+    function refreshFileTree() {
+        var selectedEntry;
+        if (_lastSelected) {
+            selectedEntry = _lastSelected.data("entry");
+        }
+        _lastSelected = null;
+        
+        // TODO: This doesn't work. I think the problem is that when _loadProject's 
+        // promise resolves, not all nodes might have actually already opened (we've 
+        // only *requested* the leaves to be open). If _findTreeNode() recurses into
+        // one of these not-yet-open nodes while it's still in the loading state,
+        // load_node_json() in the jstree API returns immediately without calling
+        // either its success or failure callback. We need a tree control with a
+        // better model that lets us do these kinds of things without having to
+        // deal with the asynchronicity directly...
+        return _loadProject(getProjectRoot().fullPath, true)
+            .done(function () {
+                if (selectedEntry) {
+                    _findTreeNode(selectedEntry).done(function (node) {
+                        _forceSelection(null, node);
+                    });
+                }
+            });
     }
     
     /**
