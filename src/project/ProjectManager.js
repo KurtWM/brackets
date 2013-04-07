@@ -138,6 +138,13 @@ define(function (require, exports, module) {
      */
     var _projectInitialLoad = null;
     
+    /**
+     * @private
+     * While initially rendering the tree, stores a list of promises for folders waiting to be read.
+     * Is null when tree is not doing its initial rendering.
+     */
+    var _renderPromises = null;
+    
     var suppressToggleOpen = false;
     
     /**
@@ -361,6 +368,42 @@ define(function (require, exports, module) {
     function _isInRename(element) {
         return ($(element).closest("li").find("input").length > 0);
     }
+    
+    /**
+     * Resolves the given deferred when all renderPromises have been resolved. This is necessary in order
+     * to determine when iniital rendering is really finished; we don't actually get a callback from jstree 
+     * once it's handled all of its "reopen" callbacks, so we instead track all of our own async file requests
+     * (which should be the only asynchronicity involved in rendering the tree). Since new requests might get
+     * added in the course of recursing the tree, we can't just do a simple $.when.apply() here.
+     *
+     * @param {$.Deferred} the deferred to resolve when rendering is finished
+     */
+    function _whenRenderedResolve(deferred) {
+        if (_renderPromises) {
+            _renderPromises.forEach(function (promise) {
+                // Only listen to each promise once.
+                if (!promise._project_listening) {
+                    promise._project_listening = true;
+                    promise.done(function () {
+                        // One of the promises is done. Remove it from the list, then
+                        // see if we have any more left.
+                        var index = _renderPromises.indexOf(promise);
+                        if (index !== -1) {
+                            _renderPromises.splice(index, 1);
+                        }
+                        if (_renderPromises.length === 0) {
+                            // All done.
+                            deferred.resolve();
+                            _renderPromises = null;
+                        } else {
+                            // Add listeners to any new promises that have shown up.
+                            _whenRenderedResolve(deferred);
+                        }
+                    });
+                }
+            });
+        }
+    }
 
     /**
      * @private
@@ -372,6 +415,8 @@ define(function (require, exports, module) {
     function _renderTree(treeDataProvider) {
         var result = new $.Deferred();
 
+        _renderPromises = [];
+        
         // For #1542, make sure the tree is scrolled to the top before refreshing.
         // If we try to do this later (e.g. after the tree has been refreshed), it 
         // doesn't seem to work properly. 
@@ -470,8 +515,8 @@ define(function (require, exports, module) {
                         _projectTree.jstree("reload_nodes", false);
                     }
                     if (_projectInitialLoad.previous.length === 0) {
-                        // resolve after all paths are opened
-                        result.resolve();
+                        // resolve after all paths are opened and fully rendered
+                        _whenRenderedResolve(result);
                     }
                 }
             ).bind(
@@ -620,7 +665,7 @@ define(function (require, exports, module) {
      * @param {function(Array)} jsTreeCallback  jsTree callback to provide children to
      */
     function _treeDataProvider(treeNode, jsTreeCallback) {
-        var dirEntry, isProjectRoot = false;
+        var dirEntry, isProjectRoot = false, deferred = new $.Deferred();
 
         if (treeNode === -1) {
             // Special case: root of tree
@@ -629,6 +674,10 @@ define(function (require, exports, module) {
         } else {
             // All other nodes: the DirectoryEntry is saved as jQ data in the tree (by _convertEntriesToJSON())
             dirEntry = treeNode.data("entry");
+        }
+        
+        if (_renderPromises) {
+            _renderPromises.push(deferred.promise());
         }
 
         // Fetch dirEntry's contents
@@ -664,6 +713,8 @@ define(function (require, exports, module) {
                         treeNode.trigger("open_node.jstree");
                     }
                 }
+                
+                deferred.resolve();
             },
             function (error) {
                 Dialogs.showModalDialog(
@@ -916,14 +967,6 @@ define(function (require, exports, module) {
         }
         _lastSelected = null;
         
-        // TODO: This doesn't work. I think the problem is that when _loadProject's 
-        // promise resolves, not all nodes might have actually already opened (we've 
-        // only *requested* the leaves to be open). If _findTreeNode() recurses into
-        // one of these not-yet-open nodes while it's still in the loading state,
-        // load_node_json() in the jstree API returns immediately without calling
-        // either its success or failure callback. We need a tree control with a
-        // better model that lets us do these kinds of things without having to
-        // deal with the asynchronicity directly...
         return _loadProject(getProjectRoot().fullPath, true)
             .done(function () {
                 if (selectedEntry) {
