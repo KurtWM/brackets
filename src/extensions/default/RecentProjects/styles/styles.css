@@ -55,7 +55,7 @@
 	padding: 5px 26px 5px 15px;
 }
 
-.recent-folder, #open-folder-link, #project-settings-link {
+.recent-folder, #project-dropdown.dropdown-menu .action {
     color: #454545;
 }
 

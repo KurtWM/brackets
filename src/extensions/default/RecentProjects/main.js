@@ -201,6 +201,9 @@ define(function (require, exports, module) {
             
             } else if (id === "open-folder-link") {
                 CommandManager.execute(Commands.FILE_OPEN_FOLDER);
+                
+            } else if (id === "refresh-tree-link") {
+                CommandManager.execute(Commands.FILE_REFRESH);
             }
             
         });
