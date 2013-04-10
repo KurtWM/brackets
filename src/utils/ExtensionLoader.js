@@ -43,9 +43,16 @@ define(function (require, exports, module) {
         contexts    = {},
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
     
-    // The native directory path ends with either "test" or "src". We need "src" to
-    // load the text and i18n modules.
-    srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
+    if (!brackets.inBrowser) {
+        srcPath = FileUtils.getNativeBracketsDirectoryPath();
+    
+        // The native directory path ends with either "test" or "src". We need "src" to
+        // load the text and i18n modules.
+        srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
+        srcPath += "/";
+    } else {
+        srcPath = window.location.pathname;
+    }
 
     var globalConfig = {
             "text" : srcPath + "/thirdparty/text",
