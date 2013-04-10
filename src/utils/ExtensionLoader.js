@@ -41,23 +41,16 @@ define(function (require, exports, module) {
     var _init       = false,
         /** @type {Object<string, Object>}  Stores require.js contexts of extensions */
         contexts    = {},
-        srcPath     = "";
-
-    if (!brackets.inBrowser) {
-        srcPath = FileUtils.getNativeBracketsDirectoryPath();
+        srcPath     = FileUtils.getNativeBracketsDirectoryPath();
     
-        // The native directory path ends with either "test" or "src". We need "src" to
-        // load the text and i18n modules.
-        srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
-        srcPath += "/";
-    } else {
-        srcPath = window.location.pathname;
-    }
+    // The native directory path ends with either "test" or "src". We need "src" to
+    // load the text and i18n modules.
+    srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
 
     var globalConfig = {
-        "text" : srcPath + "thirdparty/text",
-        "i18n" : srcPath + "thirdparty/i18n"
-    };
+            "text" : srcPath + "/thirdparty/text",
+            "i18n" : srcPath + "/thirdparty/i18n"
+        };
     
     /**
      * Returns the full path of the default user extensions directory. This is in the users

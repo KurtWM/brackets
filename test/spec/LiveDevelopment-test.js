@@ -150,7 +150,9 @@ define(function (require, exports, module) {
             
             it("should return a ready socket on Inspector.connect and close the socket on Inspector.disconnect", function () {
                 var id  = Math.floor(Math.random() * 100000),
-                    url = LiveDevelopment.launcherUrl + "?id=" + id;
+                    url = LiveDevelopment.launcherUrl + "?id=" + id,
+                    connected = false,
+                    failed = false;
                 
                 runs(function () {
                     waitsForDone(
@@ -161,10 +163,28 @@ define(function (require, exports, module) {
                 });
                    
                 runs(function () {
-                    waitsForDone(Inspector.connectToURL(url), "Inspector.connectToURL", 10000);
+                    var retries = 0;
+                    function tryConnect() {
+                        if (retries < 10) {
+                            retries++;
+                            Inspector.connectToURL(url)
+                                .done(function () {
+                                    connected = true;
+                                })
+                                .fail(function () {
+                                    window.setTimeout(tryConnect, 500);
+                                });
+                        } else {
+                            failed = true;
+                        }
+                    }
+                    tryConnect();
                 });
                 
+                waitsFor(function () { return connected || failed; }, 10000);
+                
                 runs(function () {
+                    expect(failed).toBe(false);
                     expect(Inspector.connected()).toBeTruthy();
                 });
                 
@@ -467,6 +487,27 @@ define(function (require, exports, module) {
                     expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
                     expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
                 });
+            });
+
+            // This tests url mapping -- files do not need to exist on disk
+            it("should translate urls to/from local paths", function () {
+                // Define testing parameters
+                var projectPath     = testPath + "/",
+                    outsidePath     = testPath.substr(0, testPath.lastIndexOf("/") + 1),
+                    fileProtocol    = (testWindow.brackets.platform === "win") ? "file:///" : "file://",
+                    fileRelPath     = "subdir/index.html",
+                    baseUrl,
+                    provider;
+
+                // File paths used in tests:
+                //  * file1 - file inside  project
+                //  * file2 - file outside project
+                // Encode the URLs
+                var file1Path       = projectPath + fileRelPath,
+                    file2Path       = outsidePath + fileRelPath,
+                    file1FileUrl    = encodeURI(fileProtocol + projectPath + fileRelPath),
+                    file2FileUrl    = encodeURI(fileProtocol + outsidePath + fileRelPath),
+                    file1ServerUrl;
 
 
                 // Set user defined base url, and then get provider
@@ -705,7 +746,68 @@ define(function (require, exports, module) {
                     instrumentedHtml = HTMLInstrumentationModule.generateInstrumentedHTML(testDocument);
                     createIdToTagMap(instrumentedHtml);
                     testHTMLDoc = new HTMLDocumentModule(testDocument, testEditor);
+                    testHTMLDoc.setInstrumentationEnabled(true);
                 });
+            });
+            
+            afterEach(function () {
+                LiveDevelopmentModule.config = liveDevelopmentConfig;
+                InspectorModule.config = inspectorConfig;
+                
+                SpecRunnerUtils.destroyMockEditor(testDocument);
+                testDocument = null;
+                testEditor = null;
+                
+                instrumentedHtml = "";
+                elementIds = {};
+            });
+            
+            it("should highlight the image for cursor positions inside img tag.", function () {
+                verifyTagWithId(58, 4, "img");  // before <img
+                verifyTagWithId(58, 95, "img"); // after />
+                verifyTagWithId(58, 65, "img"); // inside src attribute value
+
+            });
+
+            it("should highlight the parent link element for cursor positions between 'img' and its parent 'a' tag.", function () {
+                verifyTagWithId(58, 1, "a");  // before "   <img"
+                verifyTagWithId(59, 0, "a");  // before </a>
+            });
+
+            it("No highlight when the cursor position is outside of the 'html' tag", function () {
+                var count = HighlightAgentModule.hide.callCount;
+                
+                testEditor.setCursorPos(0, 5);  // inside 'doctype' tag
+                expect(HighlightAgentModule.hide).toHaveBeenCalled();
+                expect(HighlightAgentModule.hide.callCount).toBe(count + 1);
+                expect(HighlightAgentModule.domElement).not.toHaveBeenCalled();
+
+                testEditor.setCursorPos(147, 5);  // after </html>
+                expect(HighlightAgentModule.hide.callCount).toBe(count + 2);
+                expect(HighlightAgentModule.domElement).not.toHaveBeenCalled();
+            });
+
+            it("Should highlight the entire body for all cursor positions inside an html comment", function () {
+                verifyTagWithId(15, 1, "body");  // cursor between < and ! in the comment start
+                verifyTagWithId(16, 15, "body");
+                verifyTagWithId(17, 3, "body");  // cursor after -->
+            });
+
+            it("should highlight 'meta/link' tag for cursor positions in meta/link tags, not 'head' tag", function () {
+                verifyTagWithId(5, 60, "meta");
+                verifyTagWithId(8, 12, "link");
+            });
+
+            it("Should highlight 'title' tag at cursor positions (either in the content or begin/end tag)", function () {
+                verifyTagWithId(6, 11, "title");  // inside the begin tag
+                verifyTagWithId(6, 30, "title");  // in the content
+                verifyTagWithId(6, 50, "title");  // inside the end tag
+            });
+
+            it("Should get 'h2' tag at cursor positions (either in the content or begin or end tag)", function () {
+                verifyTagWithId(13, 1, "h2");  // inside the begin tag
+                verifyTagWithId(13, 20, "h2"); // in the content
+                verifyTagWithId(13, 27, "h2"); // inside the end tag
             });
             
             afterEach(function () {
