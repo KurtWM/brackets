@@ -44,7 +44,9 @@ define(function (require, exports, module) {
             Mustache.render(dialogTemplate, Strings)
         );
         
-        var view = new ExtensionManagerView();
+        var view = new ExtensionManagerView({
+            $searchField: $(".extension-manager-dialog .search")
+        });
         view.$el.appendTo($(".extension-manager-dialog .modal-body"));
         
         $(".extension-manager-dialog .install-from-url")

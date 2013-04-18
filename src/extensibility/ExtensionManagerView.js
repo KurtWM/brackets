@@ -41,8 +41,10 @@ define(function (require, exports, module) {
      * Creates a view enabling the user to install and manage extensions.
      * Events:
      *     "render": whenever the view fully renders itself.
+     * @param {Object=} options Optional options for the view:
+     *      $searchField: An optional input field (jQuery object) for searching the extensions in the view.
      */
-    function ExtensionManagerView() {
+    function ExtensionManagerView(options) {
         var self = this;
         this._itemTemplate = Mustache.compile(itemTemplate);
         this.$el = $("<div class='extension-list'/>");
@@ -76,12 +78,18 @@ define(function (require, exports, module) {
             .on("click", "button.install", function (e) {
                 self._installUsingDialog($(this).attr("data-extension-id"));
             });
+        if (options && options.$searchField) {
+            options.$searchField.on("input", function (e) {
+                self._filterList(options.$searchField.val());
+            });
+        }
         
         // Show the busy spinner and access the registry.
         var $spinner = $("<div class='spinner large spin'/>")
             .appendTo(this.$el);
         ExtensionManager.getRegistry(true).done(function (registry) {
             // Display the registry view.
+            // *** TODO: sorting belongs in ExtensionManager
             self._render(registry_utils.sortRegistry(registry));
         }).fail(function () {
             $("<div class='alert-message error load-error'/>")
@@ -111,6 +119,26 @@ define(function (require, exports, module) {
      */
     ExtensionManagerView.prototype._itemViews = {};
     
+    /**
+     * @private
+     * @type {string}
+     * The last query we filtered by. Used to optimize future searches.
+     */
+    ExtensionManagerView.prototype._lastQuery = null;
+    
+    /**
+     * @private
+     * @type {Array.<string>}
+     * The list of ids of the entries currently visible in the view.
+     */
+    ExtensionManagerView.prototype._visibleItems = null;
+    
+    /**
+     * @private
+     * Renders the view for a single registry entry.
+     * @param {Object} entry The registry entry to render.
+     * @return {jQueryObject} The rendered node as a jQuery object.
+     */
     ExtensionManagerView.prototype._renderItem = function (entry) {
         // Create a Mustache context object containing the entry data and our helper functions.
         var context = $.extend({}, entry),
@@ -146,9 +174,11 @@ define(function (require, exports, module) {
             $table = $("<table class='table'/>"),
             $item;
         this._itemViews = {};
+        this._visibleItems = [];
         registry.forEach(function (entry) {
             var $item = self._renderItem(entry);
             self._itemViews[entry.metadata.name] = $item;
+            self._visibleItems.push([entry.metadata.name]);
             $item.appendTo($table);
         });
         $table.appendTo(this.$el);
@@ -169,6 +199,28 @@ define(function (require, exports, module) {
                 InstallExtensionDialog.installUsingDialog(url);
             }
         });
+    };
+    
+    /**
+     * @private
+     * Searches for the given query in the list of extensions and filters the view.
+     * @param {string} query The string to search for.
+     */
+    ExtensionManagerView.prototype._filterList = function (query) {
+        // TODO: unit tests (didn't TDD this one...)
+        if (this._lastQuery && query.indexOf(this._lastQuery) === 0) {
+            // The user just typed more characters, so we can sub-filter the existing list.
+            var result = ExtensionManager.filterRegistry(this._visibleItems, query);
+            this._visibleItems.forEach(function (item) {
+                if (result.indexOf(item) === -1) {
+                    this._itemViews[item].remove();
+                }
+            });
+            this._visibleItems = result;
+        } else {
+            // New query. Start over with the sorted registry list, and re-show items as appropriate.
+            // *** TODO: sorting belongs in ExtensionManager
+        }
     };
     
     exports.ExtensionManagerView = ExtensionManagerView;

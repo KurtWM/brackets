@@ -68,7 +68,17 @@ define(function (require, exports, module) {
      *     status: the current status, one of the status constants above
      */
     var _extensions = {};
-    
+
+    /**
+     * @private
+     * @type {Array}
+     * A list of fields to search when trying to search for a query string in an object. Each field is 
+     * represented as an array of keys to recurse downward through the object. We store this here to avoid 
+     * doing it for each search call.
+     */
+    var _searchFields = [["metadata", "name"], ["metadata", "title"], ["metadata", "description"],
+                         ["metadata", "author", "name"], ["metadata", "keywords"], ["owner"]];
+
     /**
      * @private
      * Clears out our existing data. For unit testing only.
@@ -99,6 +109,61 @@ define(function (require, exports, module) {
         } else {
             return new $.Deferred().resolve(_registry).promise();
         }
+    }
+    
+    /**
+     * @private
+     * Tests if the given entry matches the query. See `filterRegistry()` for criteria.
+     * @param {Object} entry The registry entry to test.
+     * @param {string} query The query to match against.
+     * @return {boolean} Whether the query matches.
+     */
+    function _entryMatchesQuery(entry, query) {
+        return _searchFields.some(function (fieldSpec) {
+            var i, cur = entry;
+            for (i = 0; i < fieldSpec.length; i++) {
+                // Recurse downward through the specified fields to the leaf value.
+                cur = cur[fieldSpec[i]];
+                if (!cur) {
+                    return false;
+                }
+            }
+            // If the leaf value is an array (like keywords), search each item, otherwise
+            // just search in the string.
+            if (Array.isArray(cur)) {
+                return cur.some(function (keyword) {
+                    return keyword.toLowerCase().indexOf(query) !== -1;
+                });
+            } else if (cur.toLowerCase().indexOf(query) !== -1) {
+                return true;
+            }
+        });
+    }
+    
+    /**
+     * Given a list of ids to search within, returns the ids whose metadata contains the given query string
+     * in the name, title, description, author name, keywords, or owner id fields. The registry must already have
+     * been fetched.
+     * @param {Array.<string>} idList The list of ids to search within. If not specified, searches the whole registry.
+     * @param {string} query The string to search for, case-insensitively.
+     * @return {Array.<string>} A narrowed list of ids whose metadata contains the query. Returns an empty array if
+     *      the registry has not yet been fetched.
+     */
+    function filterRegistry(idList, query) {
+        if (!_registry) {
+            return [];
+        }
+        
+        query = query.toLowerCase();
+        var result = [];
+        idList = idList || Object.keys(_registry);
+        idList.forEach(function (id) {
+            var entry = _registry[id];
+            if (entry && _entryMatchesQuery(entry, query)) {
+                result.push(id);
+            }
+        });
+        return result;
     }
     
     /**
@@ -199,6 +264,7 @@ define(function (require, exports, module) {
 
     // Public exports
     exports.getRegistry = getRegistry;
+    exports.filterRegistry = filterRegistry;
     exports.getStatus = getStatus;
     exports.getCompatibilityInfo = getCompatibilityInfo;
     

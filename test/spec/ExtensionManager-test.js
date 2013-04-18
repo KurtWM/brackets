@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         CollectionUtils        = require("utils/CollectionUtils"),
         NativeApp              = require("utils/NativeApp"),
         mockRegistryText       = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
+        mockRegistryForSearch  = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
         mockRegistry;
     
     describe("ExtensionManager", function () {
@@ -254,6 +255,23 @@ define(function (require, exports, module) {
                     .toEqual({isCompatible: false, requiresNewer: false});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.1.0"))
                     .toEqual({isCompatible: false, requiresNewer: true});
+            });
+
+            it("should search case-insensitively for a keyword in the metadata for a given list of registry ids", function () {
+                var listToFilter = ["find-uniq1-in-name", "item-2", "item-3", "item-4", "item-5", "item-6"];
+                runs(function () {
+                    mockRegistry = JSON.parse(mockRegistryForSearch);
+                    waitsForDone(ExtensionManager.getRegistry());
+                });
+                runs(function () {
+                    expect(ExtensionManager.filterRegistry(listToFilter, "uniq1")).toEqual(["find-uniq1-in-name"]);
+                    expect(ExtensionManager.filterRegistry(listToFilter, "uniq2")).toEqual(["item-2"]);
+                    expect(ExtensionManager.filterRegistry(listToFilter, "uniq3")).toEqual(["item-3"]);
+                    expect(ExtensionManager.filterRegistry(listToFilter, "uniq4")).toEqual(["item-4"]);
+                    expect(ExtensionManager.filterRegistry(listToFilter, "uniq5")).toEqual(["item-5"]);
+                    expect(ExtensionManager.filterRegistry(listToFilter, "uniq6")).toEqual(["item-6"]);
+                    expect(ExtensionManager.filterRegistry(listToFilter, "uniqin1and5")).toEqual(["find-uniq1-in-name", "item-5"]);
+                });
             });
         });
         
