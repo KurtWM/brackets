@@ -178,6 +178,7 @@ define({
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
+	"CMD_EXTENSION_MANAGER": "[6775081] !é=Extension Manager\u2026=!",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -223,6 +224,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
+	"CMD_ENABLE_HOVER_PREVIEW": "Activer l’aperçu au survol",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
@@ -302,7 +304,7 @@ define({
     
     // Extension Management strings
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
-	"INSTALL_EXTENSION_LABEL": "URL de l’extension",
+	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
 	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
 	"INSTALL_SUCCEEDED": "Installation réussie.",
@@ -317,8 +319,8 @@ define({
 	"BAD_PACKAGE_NAME": "{0} n’est pas un nom de pack valide.",
 	"MISSING_PACKAGE_VERSION": "Le fichier package.json n’indique pas la version du pack.",
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
-	"INVALID_BRACKETS_VERSION": "[6771123] !é=The Brackets compatibility string {{0}} is invalid.=!",
-	"DISALLOWED_WORDS": "[6771122] !é=The words {{1}} are not allowed in the {{0}} field.=!",
+	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité Brackets {{0}} n’est pas valide.",
+	"DISALLOWED_WORDS": "Le champ {{0}} ne peut pas contenir les mots {{1}}.",
 	"API_NOT_COMPATIBLE": "Cette extension n’est pas compatible avec cette version de Brackets. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
@@ -332,6 +334,9 @@ define({
 	"UNSUPPORTED_PROTOCOL": "L’URL doit commencer par http ou https.",
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
+	"EXTENSION_MANAGER_TITLE": "Extension Manager",
+	"EXTENSION_MANAGER_ERROR_LOAD": "[6775082] !é=Unable to access the Brackets extension registry. Please try again later.=!",
+	"INSTALL_FROM_URL": "[6777878] !é=Install from URL\u2026=!",
     
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "Erreurs JSLint",

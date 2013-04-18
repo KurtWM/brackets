@@ -184,6 +184,7 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -229,14 +230,17 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
+    "CMD_ENABLE_HOVER_PREVIEW"            : "Enable Hover Preview",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Go to Definition",
+    "CMD_JUMPTO_DEFINITION"               : "Jump to Definition",
     "CMD_JSLINT_FIRST_ERROR"              : "Go to First JSLint Error",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Next Match",
     "CMD_NEXT_DOC"                        : "Next Document",
@@ -339,6 +343,9 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "The URL must be an http or https URL.",
     "UNKNOWN_ERROR"                        : "Unknown internal error.",
     // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the Brackets extension registry. Please try again later.",
+    "INSTALL_FROM_URL"                     : "Install from URL\u2026",
     
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint Errors",
@@ -354,5 +361,8 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
+    
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "Read more"
 });
