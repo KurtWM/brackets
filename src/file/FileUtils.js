@@ -298,6 +298,18 @@ define(function (require, exports, module) {
         
         return false;
     }
+
+    /**
+     * Returns the file extension for a file name
+     * @param {String} file name with extension or just a file extension
+     * @return {String} File extension if found, otherwise return the original file name
+     */
+    function _getFileExtension(fileName) {
+        var i = fileName.lastIndexOf("."),
+            ext = (i === -1 || i >= fileName.length - 1) ? fileName : fileName.substr(i + 1);
+
+        return ext;
+    }
     
     /** @const - hard-coded for now, but may want to make these preferences */
     var _staticHtmlFileExts = ["htm", "html"],
@@ -313,10 +325,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        var i = fileExt.lastIndexOf("."),
-            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
-
-        return (_staticHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+        return (_staticHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
 
     /**
@@ -329,10 +338,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        var i = fileExt.lastIndexOf("."),
-            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
-
-        return (_serverHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+        return (_serverHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
 
     // Define public API
