@@ -77,7 +77,7 @@
     "metadata": {
       "name": "item-5",
       "author": {
-        "name": "Author of item 5 uniqin1and5"
+        "name": "Author of item 5 uniqin1and5-2"
       },
       "title": "Find item 5",
       "description": "Find item 5 description",
@@ -104,24 +104,6 @@
         "a keyword",
         "uniq6"
       ]
-    },
-    "owner": "github:someuser",
-    "versions": [
-      {
-        "version": "1.0.0",
-        "published": "2013-04-10T18:26:20.553Z"
-      }
-    ]
-  },
-  "dont-find-me": {
-    "metadata": {
-      "name": "dont-find-me",
-      "author": {
-        "name": "Author of dont-find-me"
-      },
-      "title": "Don't find me",
-      "description": "Should not be found even though it also has uniq1 because it's not in the list to filter",
-      "version": "1.0.0"
     },
     "owner": "github:someuser",
     "versions": [
